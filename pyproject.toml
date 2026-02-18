@@ -5,9 +5,13 @@ description = "Automatic bouldering highlight video recognition project"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "clip",
     "ipykernel>=7.2.0",
     "loguru>=0.7.3",
     "opencv-python>=4.13.0.92",
     "pytubefix>=10.3.6",
     "pytuber>=22.5",
 ]
+
+[tool.uv.sources]
+clip = { git = "https://github.com/openai/CLIP.git" }
