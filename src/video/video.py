@@ -57,8 +57,8 @@ class YoutubeVideoAsset:
         return self.stream.width, self.stream.height
 
     def download(self, output_path: str):
-        if not Path(output_path).parent.exists():
-            Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+        if not (path := Path(output_path)).parent.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
         if not Path(output_path).exists():
             self.stream.download(output_path=path.parent, filename=path.name)
         else:

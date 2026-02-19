@@ -1,29 +1,35 @@
-from time import time
+from datetime import timedelta
+from typing import final
+
+from loguru import logger
+import numpy as np
 
 from src.video import YoutubeVideoAsset
 from src.video.video_wrapper import VideoWrapper
 
-
-olymics_rings_sequence_frame_timestamps = [
-    (
-        time(minute=0, second=58, microsecond=800000),
-        time(minute=1, second=6, microsecond=500000),
-    ),
-    (
-        time(minute=2, second=51, microsecond=250000),
-        time(minute=3, second=0, microsecond=300000),
-    ),
-    (
-        time(minute=4, second=42, microsecond=400000),
-        time(minute=5, second=16, microsecond=750000),
-    ),
+# Constants for the Olympic rings detection
+olymics_rings_fade_in_frame_timestamps: final = [
+    timedelta(minutes=0, seconds=58, microseconds=800000),
+    timedelta(minutes=2, seconds=51, microseconds=250000),
+    timedelta(minutes=4, seconds=42, microseconds=400000),
 ]
+
+olymics_rings_fade_out_frame_timestamps: final = [
+    timedelta(minutes=1, seconds=6, microseconds=500000),
+    timedelta(minutes=3, seconds=0, microseconds=300000),
+    timedelta(minutes=5, seconds=16, microseconds=750000),
+]
+
+fade_in_duration: final = timedelta(seconds=1)
+fade_out_duration: final = timedelta(seconds=1)
 
 original_video_url = "https://www.youtube.com/watch?v=45KmZUc0CzA"
 
 
 class OlympicRingSequence:
-    def __init__(self, start_time: time, end_time: time):
+    """Class representing a video sequence corresponding to the Olympic rings in the original video."""
+
+    def __init__(self, start_time: timedelta, end_time: timedelta):
         self.start_time = start_time
         self.end_time = end_time
 
@@ -41,10 +47,13 @@ class OlympicRingSequence:
             f"./data/raw/{original_video_asset.video_info.title}.mp4"
         )
         # Extract the frames corresponding to the Olympic rings sequence
-        video_sequence = original_video_wrapper.get_frames_from_time(
+        frames_list = original_video_wrapper.get_frames_from_time(
             self.start_time, self.end_time
         )
-        return VideoWrapper.load_video_from_frames(video_sequence)
+
+        logger.info(f"Retrieved {len(frames_list)} frames for Olympic Sequence")
+
+        return VideoWrapper.load_video_from_frames(frames_list)
 
 
 class OlympicRingsDetector:

@@ -1,5 +1,4 @@
-from datetime import time
-
+from datetime import datetime
 import cv2
 
 
@@ -45,19 +44,23 @@ class VideoWrapper:
         """Set the current frame position in the video."""
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
 
-    def get_frames_from_time(self, start_time: time, end_time: time = None) -> list:
+    def get_frames_from_time(
+        self,
+        start_time: datetime,
+        end_time: datetime = None,
+    ) -> list:
         """Get frames from the video starting from a specific time (in seconds)."""
         fps = self.cap.get(cv2.CAP_PROP_FPS)
-        frame_index_start = (
-            (start_time.microsecond / 1e6) + start_time.second + start_time.minute * 60
-        ) * fps
+        frame_index_start = start_time.total_seconds() * fps
         frame_index_end = (
-            ((end_time.microsecond / 1e6) + end_time.second + end_time.minute * 60)
-            * fps
-            if end_time is not None
-            else None
+            end_time.total_seconds() * fps if end_time is not None else None
         )
-        return self.get_frames_from_indexes(frame_index_start, frame_index_end)
+        return self.get_frames_from_indexes(
+            int(frame_index_start),
+            int(
+                frame_index_end
+            ),  # Using int() instead of floor() might not be ideal. Needs testing
+        )
 
     def get_frames_from_indexes(
         self, frame_index_start: int, frame_index_end: int = None
