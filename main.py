@@ -1,7 +1,8 @@
 import argparse
 from loguru import logger
 
-from src.ytb_video_retriever import YoutubeVideoRetriever
+from src.video import YoutubeVideoAsset
+from src.video_wrapper import VideoWrapper
 
 
 def main():
@@ -16,8 +17,18 @@ def main():
     if not args.url:
         logger.error("Please provide a URL.")
 
-    video, video_info = YoutubeVideoRetriever().retrieve_video(args.url)
-    logger.info(f"Retrieved video info: {video_info}")
+    # Create video information and download the video
+    yt_asset = YoutubeVideoAsset(args.url)
+    logger.info(
+        f"Retrieved video info: {yt_asset.video_info.title} by {yt_asset.video_info.author}"
+    )
+
+    video_download_path = f"./data/raw/{yt_asset.video_info.title}.mp4"
+    yt_asset.download(output_path=video_download_path)
+
+    # Transform the video into a sequence of frames
+    video_sequence = VideoWrapper(video_download_path)
+    logger.info(f"Extracted {len(video_sequence)} frames from the video.")
 
 
 if __name__ == "__main__":
