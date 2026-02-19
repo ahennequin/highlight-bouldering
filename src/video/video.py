@@ -60,6 +60,6 @@ class YoutubeVideoAsset:
         if not Path(output_path).parent.exists():
             Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         if not Path(output_path).exists():
-            self.stream.download(output_path=output_path)
+            self.stream.download(output_path=path.parent, filename=path.name)
         else:
             logger.warning(f"File {output_path} already exists. Skipping download.")
