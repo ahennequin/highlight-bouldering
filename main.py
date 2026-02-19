@@ -2,7 +2,7 @@ import argparse
 from loguru import logger
 
 from src.video import YoutubeVideoAsset
-from src.video_wrapper import VideoWrapper
+from src.video import VideoWrapper
 
 
 def main():
