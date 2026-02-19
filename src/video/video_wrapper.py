@@ -1,5 +1,6 @@
 from datetime import datetime
 import cv2
+import tempfile
 
 
 class VideoWrapper:
@@ -11,17 +12,19 @@ class VideoWrapper:
         return VideoWrapper(video_path)
 
     @staticmethod
-    def load_video_from_frames(frames: list):
+    def load_video_from_frames(frames: list, fps: float):
         """Load a video from a list of frames."""
         # Create a temporary video file from the frames
-        temp_video_path = "./temp_video.mp4"
+        temp_file = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+
         height, width, _ = frames[0].shape
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        out = cv2.VideoWriter(temp_video_path, fourcc, 30.0, (width, height))
+        out = cv2.VideoWriter(temp_file.name, fourcc, fps, (width, height))
         for frame in frames:
             out.write(frame)
         out.release()
-        return VideoWrapper(temp_video_path)
+        temp_file.close()
+        return VideoWrapper(temp_file.name)
 
     def __init__(self, video_path):
         self.video_path = video_path

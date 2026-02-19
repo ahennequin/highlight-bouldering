@@ -49,7 +49,7 @@ class YoutubeVideoAsset:
         return self.stream.codecs[0]
 
     @property
-    def fps(self) -> int:
+    def fps(self) -> float:
         return self.stream.fps
 
     @property
