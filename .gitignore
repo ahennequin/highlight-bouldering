@@ -3,3 +3,15 @@ data/**
 !data/sequences/.gitkeep
 
 notebooks/yolo*
+
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info
