@@ -146,3 +146,17 @@ class OlympicRingsDetector:
                 "detect": map(lambda x: x > self.threshold, score),
             }
         )
+
+    def retrieve_events(self, detected_events_df: pd.DataFrame) -> pd.DataFrame:
+        """Retrieve events from a computed DataFrame that contains at least 'frame_idx' and 'score'."""
+        # Create 'detect' columns if it does not exists
+        if "detect" not in detected_events_df.columns:
+            detected_events_df["detect"] = map(
+                lambda x: x > self.threshold, detected_events_df["score"]
+            )
+
+        # Compare the 'detect' column with its shifted version to find the start of new events, then group by these events and keep the first frame index and score for each event
+        grouped_data = (detected_events_df["detect"] != detected_events_df["detect"].shift()).cumsum()
+        events_df = detected_events_df[detected_events_df["detect"]].groupby(grouped_data).first().reset_index(drop=True)
+
+        return events_df
