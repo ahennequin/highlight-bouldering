@@ -3,9 +3,13 @@ from typing import final
 
 from loguru import logger
 import numpy as np
+import pandas as pd
+from tqdm import tqdm
 
+from src.metrics.metric_interface import MetricInterface
 from src.video import YoutubeVideoAsset
 from src.video.video_wrapper import VideoWrapper
+from src.video_embedder.video_embedder_interface import VideoEmbedderInterface
 
 # Constants for the Olympic rings detection
 olymics_rings_fade_in_frame_timestamps: final = [
@@ -53,15 +57,33 @@ class OlympicRingSequence:
 
         logger.info(f"Retrieved {len(frames_list)} frames for Olympic Sequence")
 
-        return VideoWrapper.load_video_from_frames(frames_list)
+        return VideoWrapper.load_video_from_frames(
+            frames_list,
+            original_video_asset.fps,
+        )
 
 
 class OlympicRingsDetector:
-    def __init__(self, video_embedder):
+    """Class representing the Olympic rings detector, which is bootstrapped using the video sequences corresponding to the Olympic rings in the original video."""
+
+    def __init__(
+        self,
+        start_time_list: list[timedelta],
+        sequence_duration: list[timedelta],
+        video_embedder: VideoEmbedderInterface,
+        metric: MetricInterface,
+        threshold: float,
+    ):
+        self.sequence_duration = sequence_duration
         self.video_embedder = video_embedder
-        self.sequences = []
-        for start_time, end_time in olymics_rings_sequence_frame_timestamps:
-            self.sequences.append(OlympicRingSequence(start_time, end_time))
+        self.metric = metric
+        self.threshold = threshold
+        self.discriminator_sequences = []
+
+        for start_time in start_time_list:
+            self.discriminator_sequences.append(
+                OlympicRingSequence(start_time, start_time + sequence_duration)
+            )
 
         self.discriminator_embeddings = self.bootstrap()
 
@@ -70,14 +92,57 @@ class OlympicRingsDetector:
         Then, embed the video sequences using the video embedder and average the embeddings to get a single embedding representing the Olympic rings.
         """
         video_sequences = []
-        for sequence in self.sequences:
+        for sequence in self.discriminator_sequences:
             video_sequences.append(sequence.extract_sequence_from_video())
 
-        sequences_embeddings = self.video_embedder(video_sequences)
+        sequences_embeddings = [
+            self.video_embedder.embed(sequence) for sequence in video_sequences
+        ]
 
-        return sequences_embeddings.mean(axis=0)
+        return np.array(sequences_embeddings).mean(axis=0)
 
-    def detect(self, frame):
-        """Detect Olympic rings in the given video frame."""
+    def _detect_sequence(self, sequence: VideoWrapper) -> bool:
+        """Detect Olympic rings in the given sequence of frame (of the same size as the discriminator)."""
 
-        return []
+        # Embed the frame using the video embedder
+        sequence_embedding = self.video_embedder.embed(sequence)
+
+        # Discriminator and given sequence embeddings must have similar shapes
+        assert (
+            sequence_embedding.shape == self.discriminator_embeddings.shape
+        ), f"Embeddings have different shapes ({sequence_embedding.shape} while expecting {self.discriminator_embeddings.shape})"
+
+        # Compute the similarity between the frame embedding and the discriminator embedding using the metric
+        similarity = self.metric.compute(
+            sequence_embedding, self.discriminator_embeddings
+        )
+
+        return similarity
+
+    def detect(self, video: VideoWrapper) -> pd.DataFrame:
+        """Detect Olympic rings on a video of any number of frames greater than the discriminator's."""
+
+        stride = self.discriminator_embeddings.shape[0]
+
+        # For performance reasons, retrieve all frames at once (might be memory consuming)
+        full_video_frames = video.get_frames_from_indexes(0, len(video))
+
+        score = []
+        frame_idx = []
+        for start_frame in tqdm(
+            range(0, len(video) - stride - 1, stride),
+            desc="Dectecting Olympic Rings...",
+            unit="sequence",
+        ):
+            sequence = full_video_frames[start_frame : start_frame + stride]
+
+            frame_idx.append(start_frame)
+            score.append(self._detect_sequence(sequence))
+
+        return pd.DataFrame(
+            {
+                "frame_idx": frame_idx,
+                "score": score,
+                "detect": map(lambda x: x > self.threshold, score),
+            }
+        )
