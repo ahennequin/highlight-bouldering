@@ -68,9 +68,26 @@ def main():
     df_fade_out.to_csv(
         f"./data/embeddings/{formatted_date}_fade_out_predictions.csv", index=False
     )
-
+        
     # Detect moments where fade-ins and fade-outs are predicted
-    ...
+    fade_in_events = fade_in_detector.retrieve_events(df_fade_in)
+    fade_out_events = fade_out_detector.retrieve_events(df_fade_out)
+
+    # Extract the frames corresponding to the detected events and save them as videos
+    paired_events = OlympicRingsDetector.pair_events(fade_in_events, fade_out_events)
+    for idx, row in paired_events.iterrows():
+        # Add extra time before and after the detected events to ensure we capture the full sequence
+        event_video = video_sequence.get_frames_from_indexes(
+            min(0, row["fade_in_frame_idx"] - fade_in_detector.sequence_duration.total_seconds() * yt_asset.fps),
+            max(len(video_sequence) - 1, row["fade_out_frame_idx"] + fade_out_detector.sequence_duration.total_seconds() * yt_asset.fps),
+        )
+        event_video_path = f"./data/events/event_{idx}_{row['fade_in_frame_idx']}_to_{row['fade_out_frame_idx']}.mp4"
+        VideoWrapper.save_video_from_frames(
+            event_video,
+            yt_asset.fps,
+            event_video_path,
+        )
+        logger.info(f"Saved detected event video to {event_video_path}")
 
 
 if __name__ == "__main__":
