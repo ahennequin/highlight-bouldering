@@ -69,7 +69,7 @@ class OlympicRingsDetector:
     def __init__(
         self,
         start_time_list: list[timedelta],
-        sequence_duration: list[timedelta],
+        sequence_duration: timedelta,
         video_embedder: VideoEmbedderInterface,
         metric: MetricInterface,
         threshold: float,
@@ -160,3 +160,27 @@ class OlympicRingsDetector:
         events_df = detected_events_df[detected_events_df["detect"]].groupby(grouped_data).first().reset_index(drop=True)
 
         return events_df
+
+    @staticmethod
+    def pair_events(fade_in_events: pd.DataFrame, fade_out_events: pd.DataFrame) -> pd.DataFrame:
+        """Pair fade-in and fade-out events based on their frame indices."""
+        paired_events = []
+        for _, fade_in_event in fade_in_events.iterrows():
+            # Find the closest fade-out event that occurs after the fade-in event
+            fade_out_event = fade_out_events[fade_out_events["frame_idx"] > fade_in_event["frame_idx"]].iloc[0]
+            paired_events.append({
+                "fade_in_frame_idx": fade_in_event["frame_idx"],
+                "fade_in_score": fade_in_event["score"],
+                "fade_out_frame_idx": fade_out_event["frame_idx"],
+                "fade_out_score": fade_out_event["score"],
+            })
+
+        paired_events = pd.DataFrame(paired_events)
+        
+        # If two fade-in events are detected before a fade-out event, we consider only the shortest one (the one with the highest score)
+        paired_events["sequence_duration"] = paired_events["fade_out_frame_idx"] - paired_events["fade_in_frame_idx"]
+        paired_events = paired_events.sort_values(by=["fade_in_frame_idx", "sequence_duration"], ascending=[True, True])
+        paired_events = paired_events.drop_duplicates(subset=["fade_out_frame_idx"], keep="last")
+
+        return pd.DataFrame(paired_events)
+    
