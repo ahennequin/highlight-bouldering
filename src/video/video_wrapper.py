@@ -66,15 +66,14 @@ class VideoWrapper:
         )
 
     def get_frames_from_indexes(
-        self, frame_index_start: int, frame_index_end: int = None
+        self,
+        frame_index_start: int,
+        frame_index_end: int = None,
     ) -> list:
         """Get frames from the video starting from a specific index."""
         self.frame_position = frame_index_start
         frames = []
-        while True:
-            ret, frame = self.cap.read()
-            if not ret:  # Break if we have reached the end of the video
-                break
+        for frame in self:
             frames.append(frame)
             # Break if we have reached the end frame index (if specified)
             if frame_index_end is not None and self.frame_position >= frame_index_end:
