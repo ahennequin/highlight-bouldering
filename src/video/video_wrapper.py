@@ -6,26 +6,6 @@ import tempfile
 class VideoWrapper:
     """OpenCV wrapper to abstract away OpenCV specific code from the rest of the application."""
 
-    @staticmethod
-    def load_video_from_path(video_path: str):
-        """Load a video from a given file path."""
-        return VideoWrapper(video_path)
-
-    @staticmethod
-    def load_video_from_frames(frames: list, fps: float):
-        """Load a video from a list of frames."""
-        # Create a temporary video file from the frames
-        temp_file = tempfile.NamedTemporaryFile(dir="./data/sequences/", suffix=".mp4", delete=False)
-
-        height, width, _ = frames[0].shape
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        out = cv2.VideoWriter(temp_file.name, fourcc, fps, (width, height))
-        for frame in frames:
-            out.write(frame)
-        out.release()
-        temp_file.close()
-        return VideoWrapper(temp_file.name)
-
     def __init__(self, video_path):
         self.video_path = video_path
         self.cap = cv2.VideoCapture(video_path)
@@ -98,3 +78,34 @@ class VideoWrapper:
     def __del__(self) -> None:
         """Ensure the video capture is released when the object is deleted."""
         self.cap.release()
+
+    @staticmethod
+    def load_video_from_path(video_path: str):
+        """Load a video from a given file path."""
+        return VideoWrapper(video_path)
+
+    @staticmethod
+    def load_video_from_frames(frames: list, fps: float):
+        """Load a video from a list of frames."""
+        # Create a temporary video file from the frames
+        temp_file = tempfile.NamedTemporaryFile(dir="./data/sequences/", suffix=".mp4", delete=False)
+
+        height, width, _ = frames[0].shape
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        out = cv2.VideoWriter(temp_file.name, fourcc, fps, (width, height))
+        for frame in frames:
+            out.write(frame)
+        out.release()
+        temp_file.close()
+        return VideoWrapper(temp_file.name)
+    
+    @staticmethod
+    def save_video_from_frames(frames: list, fps: float, output_path: str):
+        """Save a video from a list of frames to a specified output path."""
+        height, width, _ = frames[0].shape
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+        for frame in frames:
+            out.write(frame)
+        out.release()
+        
