@@ -15,7 +15,7 @@ class VideoWrapper:
     def load_video_from_frames(frames: list, fps: float):
         """Load a video from a list of frames."""
         # Create a temporary video file from the frames
-        temp_file = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+        temp_file = tempfile.NamedTemporaryFile(dir="./data/sequences/", suffix=".mp4", delete=False)
 
         height, width, _ = frames[0].shape
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
