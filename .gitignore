@@ -1,5 +1,25 @@
 data/**
-!data/raw/.gitkeep
-!data/sequences/.gitkeep
+!data/*
+!data/*/.gitkeep
+
+**/*.csv
+**/*.pt
+**/*.mp4
 
 notebooks/yolo*
+
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info
+
+.vscode/
+.idea/
+.DS_Store
