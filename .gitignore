@@ -1,6 +1,10 @@
 data/**
-!data/raw/.gitkeep
-!data/sequences/.gitkeep
+!data/*
+!data/*/.gitkeep
+
+**/*.csv
+**/*.pt
+**/*.mp4
 
 notebooks/yolo*
 
