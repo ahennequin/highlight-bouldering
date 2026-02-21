@@ -15,6 +15,36 @@ The solution involves several steps:
 3. **Highlight Detection**: Using the extracted features, the system identifies potential highlights.
 4. **Post-processing**: The detected highlights are refined and formatted for output.
 
+## Project Structure
+
+```markdown
+highlight-bouldering/
+│
+├── data/
+│   ├── bounding_boxes/
+│   ├── detected_events/
+│   ├── embeddings/
+│   ├── events/
+│   ├── raw/
+│   └── sequences/
+│
+├── notebooks/
+│
+├── src/
+│   ├── features/
+│   ├── metrics/
+│   ├── video/
+│   └── video_embedder/
+│
+├── .gitignore
+├── .python-version
+├── LICENSE
+├── README.md
+├── main.py
+├── pyproject.toml
+└── uv.lock
+```
+
 ## Usage
 
 To use this project, follow these steps:
@@ -32,3 +62,7 @@ To use this project, follow these steps:
     ```uv sync```
 
 4. Play around with the file in `./notebooks`
+
+5. Run the basic script
+
+    ```uv run main.py https://www.youtube.com/watch?v=45KmZUc0CzA```
